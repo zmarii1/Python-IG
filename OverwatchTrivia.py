@@ -20,7 +20,8 @@ def ask_question(hero_name, hero_role):
 score = 0
 
 for hero_num, (hero, role) in enumerate(heroes.items(), start=1):
-    print(f"Question {hero_num}")
+    print(f"Question {hero_num}/{len(heroes)}:")
+    print()
     if ask_question(hero, role):
         score += 1
 
