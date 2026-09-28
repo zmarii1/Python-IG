@@ -10,7 +10,7 @@ heroes = {
 def ask_question(hero_name, hero_role):
     print(f"What role is {hero_name}?")
     guess = input("Your answer: ").strip().lower()
-    if guess == hero_role
+    if guess == hero_role:
         print("Correct!")
         return True
     else:
@@ -19,7 +19,8 @@ def ask_question(hero_name, hero_role):
 
 score = 0
 
-for hero, role in heroes.items():
+for hero_num, (hero, role) in enumerate(heroes.items(), start=1):
+    print(f"Question {hero_num}")
     if ask_question(hero, role):
         score += 1
 
