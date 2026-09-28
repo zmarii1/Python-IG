@@ -15,7 +15,7 @@ def ask_question(hero_name, hero_role):
         return True
     else:
         print(f"Incorrect. The correct answer is {hero_role}.")
-        return False
+        return False'
 
 score = 0
 
