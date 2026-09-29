@@ -1,3 +1,4 @@
+import random
 
 heroes = {
 "Ana": "support" ,
@@ -19,10 +20,13 @@ def ask_question(hero_name, hero_role):
 
 score = 0
 
-for hero_num, (hero, role) in enumerate(heroes.items(), start=1):
-    print(f"Question {hero_num}/{len(heroes)}:")
+round_heroes = random.sample(list(heroes.items()), k=3)
+
+for hero_num, (hero, role) in enumerate(round_heroes, start=1):
     print()
+    
+    print(f"Question {hero_num}/{len(round_heroes)}:")
     if ask_question(hero, role):
         score += 1
 
-print(f"You got {score}/{len(heroes)}!")
+print(f"You got {score}/{len(round_heroes)}!")
