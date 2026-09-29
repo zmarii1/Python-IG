@@ -18,15 +18,15 @@ def ask_question(hero_name, hero_role):
         print(f"Incorrect. The correct answer is {hero_role}.")
         return False
 
-score = 0
+def play_round(num_questions=5):
+    score = 0
+    round_heroes = random.sample(list(heroes.items()), k=num_questions)
+    for hero_num, (hero, role) in enumerate(round_heroes, start=1):
+        print()
+        print(f"Question {hero_num}/{len(round_heroes)}:")
+        if ask_question(hero, role):
+            score += 1
+    return score, num_questions
 
-round_heroes = random.sample(list(heroes.items()), k=3)
-
-for hero_num, (hero, role) in enumerate(round_heroes, start=1):
-    print()
-    
-    print(f"Question {hero_num}/{len(round_heroes)}:")
-    if ask_question(hero, role):
-        score += 1
-
-print(f"You got {score}/{len(round_heroes)}!")
+score, total = play_round()
+print(f"You got {score}/{total}!")
