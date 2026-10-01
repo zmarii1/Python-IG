@@ -18,6 +18,7 @@ PRICE_URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_curren
 
 BUY_DROP = 0.02    # buy if the price fell 2% since the last check
 SELL_GAIN = 0.03   # sell if the price is 3% above what we paid
+STOP_LOSS = 0.05   # sell if the price is 5% below what we paid
 
 
 def load_wallet():
@@ -62,6 +63,10 @@ def decide(wallet, price):
         if price >= wallet["buy_price"] * (1 + SELL_GAIN):
             return "SELL"
 
+        # Price fell too far below what we paid: cut the loss
+        if price <= wallet["buy_price"] * (1 - STOP_LOSS):
+            return "STOP_LOSS"
+
     return "HOLD"
 
 
@@ -74,7 +79,7 @@ def run():
         wallet["btc"] = wallet["cash"] / price
         wallet["cash"] = 0.0
         wallet["buy_price"] = price
-    elif action == "SELL":
+    elif action in ("SELL", "STOP_LOSS"):
         wallet["cash"] = wallet["btc"] * price
         wallet["btc"] = 0.0
         wallet["buy_price"] = None
