@@ -1,2 +1,5 @@
 .venv/
 downloads/
+
+btc_hourly.csv
+__pycache__/

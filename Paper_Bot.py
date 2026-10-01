@@ -28,21 +28,26 @@ COOLDOWN_HOURS = 6  # after a stop-loss, wait this long before buying
 LOOKBACK_HOURS = 24  # how far back the bot remembers prices
 
 
+def new_wallet():
+    """A fresh wallet with $1,000 of fake cash."""
+    return {
+        "cash": 1000.0,
+        "btc": 0.0,
+        "buy_price": None,
+        "last_price": None,
+        "trades": [],
+        "history": [],
+        "last_stop_loss": None,
+    }
+
+
 def load_wallet():
     """Open the saved wallet, or start a fresh one if none exists yet."""
     try:
         with open(STATE_FILE, "r") as f:
             return fill_in_new_fields(json.load(f))
     except FileNotFoundError:
-        return {
-            "cash": 1000.0,
-            "btc": 0.0,
-            "buy_price": None,
-            "last_price": None,
-            "trades": [],
-            "history": [],
-            "last_stop_loss": None,
-        }
+        return new_wallet()
 
 
 def fill_in_new_fields(wallet):
@@ -107,25 +112,23 @@ def remember_price(wallet, price, now):
     """Add this check to the history and forget anything too old."""
     wallet["history"].append({"time": now.isoformat(timespec="seconds"),
                               "price": price})
-    cutoff = now - timedelta(hours=LOOKBACK_HOURS)
+    # UTC times in this format sort correctly as plain text,
+    # which is much faster than converting each one back to a datetime
+    cutoff = (now - timedelta(hours=LOOKBACK_HOURS)).isoformat(
+        timespec="seconds")
     wallet["history"] = [
-        check for check in wallet["history"]
-        if datetime.fromisoformat(check["time"]) >= cutoff
+        check for check in wallet["history"] if check["time"] >= cutoff
     ]
 
 
-def run(now=None):
-    now = now or datetime.now(timezone.utc)
-    wallet = load_wallet()
-    price = get_price()
-    action = decide(wallet, price, now)
-
+def trade(wallet, action, price, now, fee=0.0):
+    """Carry out the action on the wallet. fee=0.01 means a 1% cost."""
     if action == "BUY":
-        wallet["btc"] = wallet["cash"] / price
+        wallet["btc"] = wallet["cash"] * (1 - fee) / price
         wallet["cash"] = 0.0
         wallet["buy_price"] = price
     elif action in ("SELL", "STOP_LOSS"):
-        wallet["cash"] = wallet["btc"] * price
+        wallet["cash"] = wallet["btc"] * price * (1 - fee)
         wallet["btc"] = 0.0
         wallet["buy_price"] = None
     if action == "STOP_LOSS":
@@ -140,6 +143,14 @@ def run(now=None):
 
     wallet["last_price"] = price
     remember_price(wallet, price, now)
+
+
+def run(now=None):
+    now = now or datetime.now(timezone.utc)
+    wallet = load_wallet()
+    price = get_price()
+    action = decide(wallet, price, now)
+    trade(wallet, action, price, now)
     save_wallet(wallet)
 
     total = wallet["cash"] + wallet["btc"] * price
