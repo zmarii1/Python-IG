@@ -1,10 +1,13 @@
 """
-Paper trading bot v2: fake money, real Bitcoin prices.
+Paper trading bot v3: fake money, real Bitcoin prices.
 
 Each time you run it, it:
   1. loads your fake wallet from wallet.json (or makes a new one with $1,000)
   2. grabs the live Bitcoin price (CoinGecko, or Coinbase as a backup)
-  3. decides BUY, SELL, STOP_LOSS, or HOLD
+  3. decides BUY, SELL, STOP_LOSS, or HOLD, using one of two strategies:
+       trend: hold Bitcoin while its price is clearly above its average
+              over the last TREND_DAYS days, sit in cash while it's below
+       dip:   buy sharp drops, sell small gains, with a stop-loss
   4. saves the wallet and prints how you're doing
 
 No real money is ever involved. No API key needed.
@@ -21,7 +24,20 @@ COINGECKO_URL = (
     "?ids=bitcoin&vs_currencies=usd"
 )
 COINBASE_URL = "https://api.coinbase.com/v2/prices/BTC-USD/spot"
+COINBASE_DAILY_URL = (
+    "https://api.exchange.coinbase.com/products/BTC-USD/candles"
+    "?granularity=86400"
+)
 
+STRATEGY = "trend"  # "trend" or "dip": which rules the bot follows
+
+# Trend settings
+# Picked by backtest.py using only the first 6 months of its test year;
+# rerun it every so often to see if these still hold up.
+TREND_DAYS = 100    # compare the price to its average over the last 100 days
+TREND_BAND = 0.02   # buy when 2% above that average, sell when 2% below
+
+# Dip settings
 BUY_DROP = 0.02    # buy if the price is 2% below its 24-hour high
 SELL_GAIN = 0.03   # sell if the price is 3% above what we paid
 STOP_LOSS = 0.05   # sell if the price is 5% below what we paid
@@ -86,6 +102,19 @@ def get_price():
         return float(fetch_json(COINBASE_URL)["data"]["amount"])
 
 
+def get_trend_average(now):
+    """Average closing price over the last TREND_DAYS full days."""
+    candles = fetch_json(COINBASE_DAILY_URL)  # newest first, up to 300 days
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Each candle is [time, low, high, open, close, volume]. Skip today's,
+    # which isn't finished yet.
+    closes = [candle[4] for candle in candles
+              if candle[0] < midnight.timestamp()][:TREND_DAYS]
+    if len(closes) < TREND_DAYS:
+        raise ValueError(f"only got {len(closes)} days of prices")
+    return sum(closes) / TREND_DAYS
+
+
 def in_cooldown(wallet, now):
     """True if a stop-loss happened less than COOLDOWN_HOURS ago."""
     if wallet["last_stop_loss"] is None:
@@ -100,8 +129,32 @@ def recent_high(wallet):
     return max(prices) if prices else None
 
 
-def decide(wallet, price, now):
-    """The strategy. This is the part you'll change the most."""
+def decide(wallet, price, now, average=None):
+    """Pick BUY, SELL, STOP_LOSS, or HOLD using the chosen strategy."""
+    if STRATEGY == "trend":
+        return decide_trend(wallet, price, average)
+    return decide_dip(wallet, price, now)
+
+
+def decide_trend(wallet, price, average):
+    """Ride the trend. The band stops it flipping in and out (and paying
+    the fee each time) when the price hovers near the average."""
+    if average is None:
+        return "HOLD"
+
+    # Holding cash, price is clearly above its average: get in
+    if wallet["btc"] == 0 and price >= average * (1 + TREND_BAND):
+        return "BUY"
+
+    # Holding Bitcoin, price is clearly below its average: get out
+    if wallet["btc"] > 0 and price <= average * (1 - TREND_BAND):
+        return "SELL"
+
+    return "HOLD"
+
+
+def decide_dip(wallet, price, now):
+    """Buy the dip, take small profits, cut losses."""
     high = recent_high(wallet)
 
     # Holding cash, price is well below its recent high: buy the dip,
@@ -165,12 +218,18 @@ def run(now=None):
     now = now or datetime.now(timezone.utc)
     wallet = load_wallet()
     price = get_price()
-    action = decide(wallet, price, now)
+    average = get_trend_average(now) if STRATEGY == "trend" else None
+    action = decide(wallet, price, now, average)
     trade(wallet, action, price, now)
     save_wallet(wallet)
 
     total = wallet["cash"] + wallet["btc"] * price
+    print(f"Strategy:  {STRATEGY}")
     print(f"BTC price: ${price:,.2f}")
+    if average is not None:
+        print(f"{TREND_DAYS}-day avg: ${average:,.2f}  (buy at "
+              f"${average * (1 + TREND_BAND):,.2f}, sell at "
+              f"${average * (1 - TREND_BAND):,.2f})")
     print(f"Action:    {action}")
     print(f"Wallet:    ${wallet['cash']:,.2f} cash + {wallet['btc']:.6f} BTC")
     print(f"Total:     ${total:,.2f}  (started at $1,000.00)")
