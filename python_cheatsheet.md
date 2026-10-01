@@ -40,6 +40,16 @@ Use this while **learning**. Don't use it during the **graduation rewrite**, bec
 | `import random` | "Load Python's random tools." |
 | `random.sample(x, k=n)` | "Pick n random items from x, with no repeats." |
 
+## Brackets
+
+| Symbol | What it does | Example |
+|---|---|---|
+| `( )` | **Groups math** or **calls a function** | `(2 + 3) * 4` → 20, `len(nums)` |
+| `[ ]` | **Makes a list** or **looks up a position** | `[0, 1]`, `nums[i]` |
+| `{ }` | **Makes a dictionary**, or marks code inside an f-string | `{"Ana": "support"}`, `f"{score}"` |
+
+`return (i + j)` means "i plus j" (one number). `return [i, j]` means "a list holding i and j."
+
 ## Going from English to Python (pseudocode)
 
 Before writing code, write the steps as comments. Then translate **one comment at a time** into one line of Python, using the tables above.
