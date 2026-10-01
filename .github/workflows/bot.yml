@@ -1,0 +1,28 @@
+name: Run paper bot
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run the bot
+        working-directory: paper-bot
+        run: python paper_bot.py
+      - name: Save the wallet back to the repo
+        run: |
+          git config user.name "paper-bot"
+          git config user.email "paper-bot@users.noreply.github.com"
+          git add paper-bot/wallet.json
+          git commit -m "bot run $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing changed"
+          git push
