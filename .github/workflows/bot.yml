@@ -1,4 +1,4 @@
-name: Run paper bot
+name: Run paper_bot
 
 on:
   schedule:
