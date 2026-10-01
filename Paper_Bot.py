@@ -3,7 +3,7 @@ Paper trading bot v2: fake money, real Bitcoin prices.
 
 Each time you run it, it:
   1. loads your fake wallet from wallet.json (or makes a new one with $1,000)
-  2. grabs the live Bitcoin price
+  2. grabs the live Bitcoin price (CoinGecko, or Coinbase as a backup)
   3. decides BUY, SELL, STOP_LOSS, or HOLD
   4. saves the wallet and prints how you're doing
 
@@ -16,16 +16,23 @@ from pathlib import Path
 
 # Always next to this script, no matter which folder you run it from
 STATE_FILE = Path(__file__).parent / "wallet.json"
-PRICE_URL = (
+COINGECKO_URL = (
     "https://api.coingecko.com/api/v3/simple/price"
     "?ids=bitcoin&vs_currencies=usd"
 )
+COINBASE_URL = "https://api.coinbase.com/v2/prices/BTC-USD/spot"
 
 BUY_DROP = 0.02    # buy if the price is 2% below its 24-hour high
 SELL_GAIN = 0.03   # sell if the price is 3% above what we paid
 STOP_LOSS = 0.05   # sell if the price is 5% below what we paid
 COOLDOWN_HOURS = 6  # after a stop-loss, wait this long before buying
 LOOKBACK_HOURS = 24  # how far back the bot remembers prices
+
+# Cost of each buy or sell. Robinhood doesn't charge a fee on crypto;
+# it builds about 0.95% into the price instead (its crypto order
+# routing page, as of June 2026). Paper trades pay it too, so the
+# fake results match what real ones would have been.
+FEE = 0.01
 
 
 def new_wallet():
@@ -63,11 +70,20 @@ def save_wallet(wallet):
         json.dump(wallet, f, indent=2)
 
 
+def fetch_json(url):
+    """Download a URL and read the reply as JSON."""
+    request = urllib.request.Request(url, headers={"User-Agent": "paper-bot"})
+    with urllib.request.urlopen(request, timeout=10) as response:
+        return json.load(response)
+
+
 def get_price():
-    """Ask CoinGecko for the current Bitcoin price in USD."""
-    with urllib.request.urlopen(PRICE_URL, timeout=10) as response:
-        data = json.load(response)
-    return data["bitcoin"]["usd"]
+    """Current Bitcoin price in USD. Tries CoinGecko, then Coinbase."""
+    try:
+        return fetch_json(COINGECKO_URL)["bitcoin"]["usd"]
+    except Exception as error:
+        print(f"CoinGecko failed ({error}), trying Coinbase instead")
+        return float(fetch_json(COINBASE_URL)["data"]["amount"])
 
 
 def in_cooldown(wallet, now):
@@ -121,14 +137,14 @@ def remember_price(wallet, price, now):
     ]
 
 
-def trade(wallet, action, price, now, fee=0.0):
-    """Carry out the action on the wallet. fee=0.01 means a 1% cost."""
+def trade(wallet, action, price, now):
+    """Carry out the action on the wallet, paying FEE on each trade."""
     if action == "BUY":
-        wallet["btc"] = wallet["cash"] * (1 - fee) / price
+        wallet["btc"] = wallet["cash"] * (1 - FEE) / price
         wallet["cash"] = 0.0
         wallet["buy_price"] = price
     elif action in ("SELL", "STOP_LOSS"):
-        wallet["cash"] = wallet["btc"] * price * (1 - fee)
+        wallet["cash"] = wallet["btc"] * price * (1 - FEE)
         wallet["btc"] = 0.0
         wallet["buy_price"] = None
     if action == "STOP_LOSS":

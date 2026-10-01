@@ -5,7 +5,8 @@ the paper bot's strategy to see how different settings would have done.
 Run it:  python backtest.py
 
 The first run downloads the prices (about 30 seconds) and saves them to
-btc_hourly.csv, so later runs are fast. Delete that file to get fresh data.
+btc_hourly.csv, so later runs are fast. It downloads fresh prices again
+once that file is more than a day old.
 
 How to read the results:
   - Buy & hold is the baseline: buy once, never sell. A strategy that
@@ -29,9 +30,9 @@ DATA_FILE = Path(__file__).parent / "btc_hourly.csv"
 CANDLES_URL = "https://api.exchange.coinbase.com/products/BTC-USD/candles"
 DAYS = 365
 
-# Estimated cost per trade. Robinhood charges for crypto through the
-# spread instead of a fee. 0.5% is a rough guess; change it to compare.
-FEE = 0.005
+# Cost per trade, taken from the bot. Change it here (for example to 0)
+# to see how much trading costs matter, without changing the live bot.
+FEE = bot.FEE
 
 SETTINGS_TO_TRY = {
     "BUY_DROP": [0.01, 0.02, 0.03, 0.05, 0.08],
@@ -70,7 +71,9 @@ def download_prices():
 
 def load_prices():
     """Read the saved prices, downloading them first if needed."""
-    if not DATA_FILE.exists():
+    one_day = 24 * 60 * 60
+    if (not DATA_FILE.exists()
+            or time.time() - DATA_FILE.stat().st_mtime > one_day):
         print("Downloading a year of hourly BTC prices...")
         download_prices()
     with open(DATA_FILE, newline="") as f:
@@ -82,12 +85,13 @@ def simulate(prices, settings):
     """Run the bot's real decide() and trade() over every hour."""
     for name, value in settings.items():
         setattr(bot, name, value)
+    bot.FEE = FEE
     wallet = bot.new_wallet()
     peak = total = wallet["cash"]
     worst_drop = 0.0
     for now, price in prices:
         action = bot.decide(wallet, price, now)
-        bot.trade(wallet, action, price, now, fee=FEE)
+        bot.trade(wallet, action, price, now)
         total = wallet["cash"] + wallet["btc"] * price
         peak = max(peak, total)
         worst_drop = max(worst_drop, (peak - total) / peak)

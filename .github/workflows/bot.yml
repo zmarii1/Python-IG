@@ -2,7 +2,9 @@ name: Run paper_bot
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    # Minute 41, not 0: the top of the hour is GitHub's busiest time and
+    # scheduled runs there get delayed or skipped
+    - cron: "41 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -16,9 +18,10 @@ concurrency:
 jobs:
   trade:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Run the bot
