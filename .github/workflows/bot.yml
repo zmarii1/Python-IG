@@ -17,12 +17,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run the bot
-        working-directory: paper-bot
+        working-directory: paper_bot
         run: python paper_bot.py
       - name: Save the wallet back to the repo
         run: |
-          git config user.name "paper-bot"
-          git config user.email "paper-bot@users.noreply.github.com"
-          git add paper-bot/wallet.json
+          git config user.name "paper_bot"
+          git config user.email "paper_bot@users.noreply.github.com"
+          git add paper_bot/wallet.json
           git commit -m "bot run $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing changed"
           git push
