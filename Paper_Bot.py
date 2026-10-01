@@ -11,9 +11,11 @@ No real money is ever involved. No API key needed.
 """
 import json
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 
-STATE_FILE = "wallet.json"
+# Always next to this script, no matter which folder you run it from
+STATE_FILE = Path(__file__).parent / "wallet.json"
 PRICE_URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
 
 BUY_DROP = 0.02    # buy if the price fell 2% since the last check
@@ -44,7 +46,7 @@ def save_wallet(wallet):
 
 def get_price():
     """Ask CoinGecko for the current Bitcoin price in USD."""
-    with urllib.request.urlopen(PRICE_URL) as response:
+    with urllib.request.urlopen(PRICE_URL, timeout=10) as response:
         data = json.load(response)
     return data["bitcoin"]["usd"]
 
@@ -86,7 +88,7 @@ def run():
 
     if action != "HOLD":
         wallet["trades"].append({
-            "time": datetime.now().isoformat(timespec="seconds"),
+            "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "action": action,
             "price": price,
         })

@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# Only one bot run at a time, so two runs never edit the wallet together
+concurrency:
+  group: paper-bot
+  cancel-in-progress: false
+
 jobs:
   trade:
     runs-on: ubuntu-latest
@@ -24,4 +29,5 @@ jobs:
           git config user.email "paper_bot@users.noreply.github.com"
           git add wallet.json
           git commit -m "bot run $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing changed"
+          git pull --rebase
           git push
