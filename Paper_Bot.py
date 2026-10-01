@@ -16,7 +16,10 @@ from pathlib import Path
 
 # Always next to this script, no matter which folder you run it from
 STATE_FILE = Path(__file__).parent / "wallet.json"
-PRICE_URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+PRICE_URL = (
+    "https://api.coingecko.com/api/v3/simple/price"
+    "?ids=bitcoin&vs_currencies=usd"
+)
 
 BUY_DROP = 0.02    # buy if the price fell 2% since the last check
 SELL_GAIN = 0.03   # sell if the price is 3% above what we paid
