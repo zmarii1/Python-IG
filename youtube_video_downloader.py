@@ -15,6 +15,9 @@ audio = {
     }]
 }
 
+if input("Do you want to download audio only? (y/n): ").lower().strip() == "y":
+    options.update(audio)  
+
 
 with yt_dlp.YoutubeDL(options) as ydl:
     ydl.download([url])
