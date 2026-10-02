@@ -3,3 +3,4 @@ downloads/
 
 btc_hourly.csv
 __pycache__/
+runner.log

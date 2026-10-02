@@ -32,5 +32,11 @@ jobs:
           git config user.email "paper_bot@users.noreply.github.com"
           git add wallet.json
           git commit -m "bot run $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing changed"
-          git pull --rebase
+          # If the PC backup runner saved the wallet a moment ago, keep its
+          # run and skip this one instead of failing
+          if ! git pull --rebase; then
+            git rebase --abort
+            echo "Another run saved the wallet at the same time; skipping"
+            exit 0
+          fi
           git push
