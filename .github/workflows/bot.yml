@@ -24,19 +24,5 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - name: Run the bot
-        run: python Paper_Bot.py
-      - name: Save the wallet back to the repo
-        run: |
-          git config user.name "paper_bot"
-          git config user.email "paper_bot@users.noreply.github.com"
-          git add wallet.json
-          git commit -m "bot run $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing changed"
-          # If the PC backup runner saved the wallet a moment ago, keep its
-          # run and skip this one instead of failing
-          if ! git pull --rebase; then
-            git rebase --abort
-            echo "Another run saved the wallet at the same time; skipping"
-            exit 0
-          fi
-          git push
+      - name: Run the bot and save the wallet
+        run: python runner.py
