@@ -1,6 +1,10 @@
 name: Python check
 
-on: [push]
+on:
+  push:
+    # Wallet-only commits from the bot have no code to check
+    paths-ignore:
+      - wallet.json
 
 permissions:
   contents: read
