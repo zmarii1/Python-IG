@@ -10,7 +10,6 @@ Everything I'm working on, in one place. Last updated 2026-10-14.
 | [Python cheatsheet](#python-cheatsheet) | Python basics in plain English | Done | 2026-09-30 | Add each new thing as you learn it |
 | [Jump Tower](#jump-tower-roblox) | Roblox jumping/clicker game | In progress | 2026-10-13 | Get the scripts into git |
 | [Minecraft server](#minecraft-server) | Vanilla server in Docker | Stopped | 2026-10-11 | Automate backups |
-| [Build log](#build-log) | Weekly learning plan | Out of date | 2026-09-09 | Tick off the weeks already done |
 
 ## Paper trading bot
 
@@ -65,12 +64,3 @@ Not on GitHub. Runs in Docker (`itzg/minecraft-server`), vanilla.
 - **Status:** Stopped. The container last shut down cleanly around 2026-10-11. One backup exists, made by hand on 2026-10-10.
 - **Last worked on:** 2026-10-11.
 - **Next step:** Set up automatic backups so the world isn't relying on one hand-made copy.
-
-## Build log
-
-Repo: `Hi` (private).
-
-- **What it does:** A 7-week plan for learning: trivia game, password generator, to-do list, YouTube downloader, a Wireshark lab, then a review week. Each week has a checklist and a "where I stopped" note.
-- **Status:** Out of date. Every box is still unticked, but the trivia game and the YouTube downloader (weeks 1, 3 and 4) are actually done. The password generator and the to-do list haven't been started.
-- **Last worked on:** 2026-09-09.
-- **Next step:** Tick off the weeks you've finished so the plan shows what's actually next (the password generator).
