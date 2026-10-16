@@ -8,7 +8,7 @@ Everything I'm working on, in one place. Last updated 2026-10-14.
 | [YouTube downloader](#youtube-downloader) | Downloads a YouTube video or just its audio | Broken locally | 2026-10-07 | Put back the missing `:` on line 20 |
 | [Overwatch trivia](#overwatch-trivia) | Quiz on Overwatch hero roles | Done | 2026-09-29 | None |
 | [Python cheatsheet](#python-cheatsheet) | Python basics in plain English | Done | 2026-09-30 | Add each new thing as you learn it |
-| [Jump Tower](#jump-tower-roblox) | Roblox jumping/clicker game | In progress | 2026-10-13 | Get the scripts into git |
+| [Jump Tower](#jump-tower-roblox) | Roblox jumping/clicker game | In progress | 2026-10-13 | Visual check in Roblox Studio |
 | [Minecraft server](#minecraft-server) | Vanilla server in Docker | Stopped | 2026-10-11 | Automate backups |
 
 ## Paper trading bot
@@ -49,12 +49,12 @@ Repo: this one (`python_cheatsheet.md`).
 
 ## Jump Tower (Roblox)
 
-Not on GitHub. Saved as a Roblox place file (`JumpTowernew.rbxlx`).
+Scripts are in a private GitHub repo (`jump-tower`). The map and models live in the Roblox place file (`JumpTowernew.rbxlx`).
 
 - **What it does:** A Roblox jumping game with several worlds. Players click to build Power, land on win pads or smash glass ceilings for Wins, and spend them on upgrades, rebirths and prestige. It also has pets that hatch from eggs, boots crafted from materials you pick up, story and daily quests, a daily streak, offline earnings, leaderboards, and a shared Chaos meter that spins a roulette of random events for the whole server.
 - **Status:** In progress and big: 14 scripts, about 10,000 lines of Luau. The server owns all stats, so players can't cheat, and saves are locked so a player's progress can't be overwritten when they switch servers.
 - **Last worked on:** 2026-10-13.
-- **Next step:** Get the scripts into git (a private repo, for example with [Rojo](https://rojo.space)). Right now the only copies are the place files on the PC and any versions saved to Roblox, with no history of what changed.
+- **Next step:** Run the visual check in Roblox Studio (lighting, haze and the new asset pack in each world), then fix the two small UI issues it already found.
 
 ## Minecraft server
 
